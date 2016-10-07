@@ -1,6 +1,6 @@
 <?php
 class category {
-
+ 
 	public $c = NULL;
 
 	function __construct(){

@@ -1,6 +1,26 @@
 <?php
-$config['db_host'] = 'localhost';
-$config['db_user'] = 'root';
-$config['db_pass'] = 'root';
+class config
+{
+	
+	
+	
+	public static $db_host = 'localhost';
+	public static $db_user = 'root';
+	public static $db_pass = 'root';
+	public static $db_name = 'mycart';
+	public static $apikey = '123456';
+	/*
+	public static $db_host = '127.2.72.130';
+	public static $db_user = 'admincxaEnjd';
+	public static $db_pass = 'z1qmXTEzqGZm';
+	public static $db_name = 'mycart';
+	public static $apikey = '123456';
+	*/
+	
+}
+/*
+$config['db_host'] = '127.2.72.130';
+$config['db_user'] = 'admincxaEnjd';
+$config['db_pass'] = 'z1qmXTEzqGZm';
 $config['db_name'] = 'mycart';
-$config['api_key'] = 'bd4c1e4da9364a24473dcd88a6b60870';
+*/

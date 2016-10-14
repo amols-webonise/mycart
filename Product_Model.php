@@ -1,11 +1,13 @@
 <?php
-class Category_Model
+class Product_Model
 {
 	protected $_id;
 	protected $_name;
 	protected $_description;
-	protected $_tax;
-	
+	protected $_price;
+    protected $_discount;
+    protected $_category_id;
+    
     public function __construct(array $options = null)
     {
         if (is_array($options)) {
@@ -81,14 +83,36 @@ class Category_Model
     }
 	
 
-    public function setTax($param)
+    public function setPrice($param)
     {
-        $this->_tax = (float) $param;
+        $this->_price = (float) $param;
         return $this;
     }
 
-    public function getTax()
+    public function getPrice()
     {
-        return $this->_tax;
+        return $this->_price;
+    }
+
+    public function setDiscount($param)
+    {
+        $this->_discount = (float) $param;
+        return $this;
+    }
+
+    public function getDiscount()
+    {
+        return $this->_discount;
+    }
+
+    public function setCategoryId($param)
+    {
+        $this->_category_id = (float) $param;
+        return $this;
+    }
+
+    public function getCategoryId()
+    {
+        return $this->_category_id;
     }
 }

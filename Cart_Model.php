@@ -1,11 +1,11 @@
 <?php
-class Category_Model
+class Cart_Model
 {
-	protected $_id;
+	protected $_cartid;
 	protected $_name;
-	protected $_description;
-	protected $_tax;
-	
+	protected $_product_id;
+	protected $_qty;
+
     public function __construct(array $options = null)
     {
         if (is_array($options)) {
@@ -43,17 +43,16 @@ class Category_Model
         return $this;
     }
 
-	
 
-    public function setId($param)
+    public function setCartId($param)
     {
-        $this->_id = (int) $param;
+        $this->_cartid = (int) $param;
         return $this;
     }
 
-    public function getId()
+    public function getCartId()
     {
-        return $this->_id;
+        return $this->_cartid;
     }
 	
 
@@ -68,27 +67,27 @@ class Category_Model
         return $this->_name;
     }
 	
-
-    public function setDescription($param)
+    
+    public function setProductId($param)
     {
-        $this->_description = (string) $param;
+        $this->_product_id = (string) $param;
         return $this;
     }
 
-    public function getDescription()
+    public function getProductId()
     {
-        return $this->_description;
+        return $this->_product_id;
     }
 	
 
-    public function setTax($param)
+    public function setQty($param)
     {
-        $this->_tax = (float) $param;
+        $this->_qty = (int) $param;
         return $this;
     }
 
-    public function getTax()
+    public function getQty()
     {
-        return $this->_tax;
+        return $this->_qty;
     }
 }

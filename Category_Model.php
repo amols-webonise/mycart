@@ -5,6 +5,7 @@ class Category_Model
 	protected $_name;
 	protected $_description;
 	protected $_tax;
+    protected $_action;
 	
     public function __construct(array $options = null)
     {
@@ -44,7 +45,7 @@ class Category_Model
     }
 
 	
-	/* get / set _category_id */
+
     public function setId($param)
     {
         $this->_id = (int) $param;
@@ -56,7 +57,7 @@ class Category_Model
         return $this->_id;
     }
 	
-	/* get / set _name */
+
     public function setName($param)
     {
         $this->_name = (string) $param;
@@ -68,7 +69,7 @@ class Category_Model
         return $this->_name;
     }
 	
-	/* get / set _is_active */
+
     public function setDescription($param)
     {
         $this->_description = (string) $param;
@@ -80,7 +81,7 @@ class Category_Model
         return $this->_description;
     }
 	
-	/* get / set _is_deleted */
+
     public function setTax($param)
     {
         $this->_tax = (float) $param;
@@ -90,5 +91,16 @@ class Category_Model
     public function getTax()
     {
         return $this->_tax;
+    }
+
+    public function setAction($action)
+    {
+        $this->_action = (string) $action;
+        return $this;
+    }
+
+    public function getAction()
+    {
+        return $this->_action;
     }
 }

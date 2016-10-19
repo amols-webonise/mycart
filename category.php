@@ -1,51 +1,94 @@
 <?php
-class category {
+include_once('statuscode.php');
+include_once('http_response_message.php');
+include_once('category_validation.php');
+class category { 
 
 	public $c = NULL;
+	private $v;
 
-	function __construct(){
+	function __construct($obj = null){
+		if($obj instanceof Category_Model){
+			$this->c = $obj;
+			$this->v = new category_validation();
+		}
+	}
+
+	function validateCategory(){
+		if($this->c->getAction() != 'add'){
+			if(!category::validCategoryId($this->c->getId())){
+				throw new Exception(http_response_message::$response_message[1001]);
+			}
+		}
+		
+		if($this->c->getAction() == 'add'){
+			if(!$this->v->isValidName($this->c->getName())){
+				throw new Exception(http_response_message::$response_message[1101]);
+			}
+			if(!$this->v->isValidDescription($this->c->getDescription())){
+				throw new Exception(http_response_message::$response_message[1102]);
+			}
+			if(!$this->v->isValidTax($this->c->getTax())){
+				throw new Exception(http_response_message::$response_message[1103]);
+			}
+		} else {
+
+			if($this->c->getAction() == 'update'){
+				if($this->c->getName() != '' || $this->c->getDescription() != '' || $this->c->getTax() != '') {
+					if($this->c->getName() != ''){
+						if(!$this->v->isValidName($this->c->getName())){
+							throw new Exception(http_response_message::$response_message[1101]);
+						}
+					}
+					
+					if($this->c->getDescription() != '') {
+						if(!$this->v->isValidDescription($this->c->getDescription())){
+							throw new Exception(http_response_message::$response_message[1102]);
+						}
+					}
+					
+					if($this->c->getTax() != '' || $this->c->getTax() > 0 || $this->c->getTax() < 0){
+						if(!$this->v->isValidTax($this->c->getTax())){
+							throw new Exception(http_response_message::$response_message[1103]);
+						}
+					}
+				} else {
+					throw new Exception(http_response_message::$response_message[1104]);
+				}
+			}
+		}
 
 	}
 
-	function add($param = array(), $method){
-		global $db;
+	function add(){
+		$db = connection::connect();
 		try{
-			if($method != 'POST'){
-				throw new Exception('Error: Invalid request type.');
-			}
-			if(is_array($param) && sizeof($param) > 0){
+			
+			$this->validateCategory();
+
+			if($this->c  instanceof Category_Model){
 				$statement = $db->prepare("INSERT INTO category(name, description, tax) VALUES (:name, :description, :tax)");
 				$statement->execute(array(
 				    ":name" => $this->c->getName(),
 				    ":description" => $this->c->getDescription(),
 				    ":tax" => $this->c->getTax(),
 				));
-				$response = array('status'=>'SUCCESS', 'message'=>'Successfully saved!', 'id'=>$db->lastInsertId());
-				echo json_encode($response);
+				http_response::generate('SUCCESS', 1000, 201, array('id'=>$db->lastInsertId()), NULL);
 			}
 		} catch (PDOException $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		} catch (Exception $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		}
 
 	}
 
-	function update($param = array(), $method){
-		global $db;
+	function update(){
+		$db = connection::connect();
 		try{
-			if($method != 'POST'){
-				throw new Exception('Error: Invalid request type.');
-			}
-			if((int)$this->c->id < 1){
-				throw new Exception('Error: Invalid category id.');
-			}
+			$this->validateCategory();
 			
-			if(is_array($param) && sizeof($param) > 0){
+			if($this->c  instanceof Category_Model){
 				
 				$sql = "";
 				$deli = '';
@@ -58,7 +101,7 @@ class category {
 					$sql .= $deli."description = :description ";
 					$deli = ',';
 				}
-				if(strlen($this->c->tax) > 0){
+				if($this->c->tax > 0){
 					$sql .= $deli."tax = :tax  ";
 				}
 				$sql .= "WHERE id = :id";
@@ -71,97 +114,108 @@ class category {
 					$stmt->bindParam(':description', $this->c->description, PDO::PARAM_STR);    
 				}
 				
-				if(strlen($this->c->tax) > 0){
+				if($this->c->tax > 0){
 					$stmt->bindParam(':tax', $this->c->tax, PDO::PARAM_STR);
 				}
 				
-				if(strlen($this->c->id) > 0){
+				if($this->c->id > 0){
 					$stmt->bindParam(':id', $this->c->id, PDO::PARAM_INT);   
 				}
 				$stmt->execute(); 
-				$response = array('status'=>'SUCCESS', 'message'=>'Successfully saved!');
-				echo json_encode($response);
+				http_response::generate('SUCCESS', 1000, 200, NULL, NULL);
 			}
 		} catch (PDOException $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		} catch (Exception $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		}
 
 	}
 
-	function delete($param = array(), $method){
-		global $db;
+	function delete(){
+		$db = connection::connect();
 		try{
-			if($method != 'DELETE'){
-				throw new Exception('Error: Invalid request type.');
-			}
+			$this->validateCategory();
 			if((int)$this->c->id < 1){
-				throw new Exception('Error: Invalid category id.');
+				throw new Exception(http_response_message::$response_message[1001]);
+			}else{
+				if(!category::validCategoryId($this->c->id)){
+					throw new Exception(http_response_message::$response_message[1001]);
+				}
 			}
-			if(is_array($param) && sizeof($param) > 0){
+			if($this->c  instanceof Category_Model){
 				$sql = 'delete from category where id=:id';
 				$stmt = $db->prepare($sql);
 				$stmt->bindParam(':id', $this->c->id, PDO::PARAM_INT);
 				$stmt->execute();
-				$response = array('status'=>'SUCCESS', 'message'=>'Successfully deleted!');
-				echo json_encode($response);
+				http_response::generate('SUCCESS', 1002, 200, NULL, NULL);
 			}
 		} catch (PDOException $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		} catch (Exception $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		}
 	}
 
-	function getAll($param = array(), $method){
-		global $db;
+	function getAll(){
+		$db = connection::connect();
 		try{
-			if($method != 'GET'){
-				throw new Exception('Error: Invalid request type.');
-			}
+			
 			$sql = 'select * from category order by name asc';
 			$stmt = $db->prepare($sql);
 			$stmt->execute();
 			$array = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-			/*
-			foreach($array as $k => $v){
-				$cat = new Category_Model();
-				$cat->setId($v['id']);
-				$cat->setName($v['name']);
-				$cat->setDescription($v['description']);
-				$cat->setTax($v['tax']);
-				$data[$k] = $cat;
-				echo '<pre>'; print_r($cat);
-			}
-			*/
-			
 			if(is_array($array) && sizeof($array) > 0){
 				$data = $array;
-				$response = array('status'=>'SUCCESS', 'message'=>'Your data list!', 'data'=>$data);
-				echo json_encode($response);
+				http_response::generate('SUCCESS', 1008, 200, array('list'=>$data), NULL);
 			}
-			
-			$response = array('status'=>'SUCCESS', 'message'=>'Your data list!', 'data'=>$data);
-			echo json_encode($response);
-			
+			http_response::generate('SUCCESS', 1008, 200, array('list'=>$data), NULL);
 		} catch (PDOException $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
 		} catch (Exception $e) {
-			$response = array('status'=>'ERROR', 'message'=>$e->getMessage());
-			echo json_encode($response);
-			errorlog::save('Caught exception: '.  $e->getMessage());
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
+		}
+	}
+
+	function getById(){
+		$db = connection::connect();
+		try{
+			
+			if(!category::validCategoryId($this->c->getId())){
+				throw new Exception(http_response_message::$response_message[1001]);
+			}
+
+			$sql = 'select * from category where id=:id';
+			$stmt = $db->prepare($sql);
+			$stmt->bindValue(':id', $this->c->getId());
+			$stmt->execute();
+			$array = $stmt->fetch(PDO::FETCH_ASSOC);
+
+			if(is_array($array) && sizeof($array) > 0){
+				$data = $array;
+				http_response::generate('SUCCESS', 1008, 200, array('list'=>$data), NULL);
+			}
+			http_response::generate('SUCCESS', 1008, 200, array('list'=>$data), NULL);
+		} catch (PDOException $e) {
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
+		} catch (Exception $e) {
+			http_response::generate('ERROR', NULL, 400, NULL, $e->getMessage());
+		}
+	}
+
+	function validCategoryId($categoryId){
+		$db = connection::connect();
+		$sql = 'select id from category where id=:id';
+		$stmt = $db->prepare($sql);
+		$stmt->bindValue(':id', $categoryId);
+		$stmt->execute();
+		$array = $stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if((int)$array['id'] > 0){
+			return true;
+		} else {
+			return false;
 		}
 	}
 }

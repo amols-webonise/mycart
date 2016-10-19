@@ -1,5 +1,5 @@
 <?php
-include_once('./http_response_message.php');
+include_once('http_response_message.php');
 class http_request
 {
 	private $param = array();
@@ -100,8 +100,8 @@ class http_request
 	}
 
 	function callCategory(){
-		include_once('./category.php');
-		include_once('./Category_Model.php');
+		include_once('category.php');
+		include_once('Category_Model.php');
 		try{
 			switch($this->method){
 				case 'POST':
@@ -147,6 +147,7 @@ class http_request
 			$c->setName($this->param['name']);
 			$c->setDescription($this->param['description']);
 			$c->setTax($this->param['tax']);
+			$c->setAction($this->param['action']);
 			$category = new category($c);
 
 			$category->{$this->param['action']}();
@@ -156,8 +157,8 @@ class http_request
 	}
 
 	function callProduct(){
-		include_once('./product.php');
-		include_once('./Product_Model.php');
+		include_once('product.php');
+		include_once('Product_Model.php');
 		try{
 			switch($this->method){
 				case 'POST':
@@ -205,6 +206,7 @@ class http_request
 			$p->setPrice($this->param['price']);
 			$p->setDiscount($this->param['discount']);
 			$p->setCategoryId($this->param['category_id']);
+			$p->setAction($this->param['action']);
 			$product = new product($p);
 			$product->{$this->param['action']}();
 		} catch (Exception $e) {
@@ -213,8 +215,8 @@ class http_request
 	}
 
 	function callCart(){
-		include_once('./cart.php');
-		include_once('./Cart_Model.php');
+		include_once('cart.php');
+		include_once('Cart_Model.php');
 
 		try{
 			switch($this->method){
@@ -259,6 +261,7 @@ class http_request
 			$c->setName((string)$this->param['name']);
 			$c->setProductId((int)$this->param['product_id']);
 			$c->setQty((float)$this->param['qty']);
+			$c->setAction($this->param['action']);
 			$cart = new cart($c);
 			$cart->{$this->param['action']}();
 		} catch (Exception $e) {

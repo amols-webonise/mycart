@@ -1,5 +1,72 @@
 -------------------------------------------------------------------------
-Api List
+Api List for live server
+-------------------------------------------------------------------------
+CATEGORY :
+POST
+http://mycart-empmngmntsystm.rhcloud.com/category/add
+(name, description, tax)
+
+PATCH
+http://mycart-empmngmntsystm.rhcloud.com/category/5
+(name, description, tax)
+
+Delete
+http://mycart-empmngmntsystm.rhcloud.com/category/5
+
+GET (GET BY ID)
+http://mycart-empmngmntsystm.rhcloud.com/category/5
+
+GET (GET ALL)
+http://mycart-empmngmntsystm.rhcloud.com/category/
+
+PRODUCT :
+POST
+http://mycart-empmngmntsystm.rhcloud.com/product/add
+(name, description, price, discount, category_id)
+
+PATCH
+http://mycart-empmngmntsystm.rhcloud.com/product/8
+(name, description, price, discount, category_id)
+
+DELETE
+http://mycart-empmngmntsystm.rhcloud.com/product/8
+
+GET (GET BY ID)
+http://mycart-empmngmntsystm.rhcloud.com/product/8
+
+GET (GET ALL)
+http://mycart-empmngmntsystm.rhcloud.com/product/
+
+
+CART :
+POST
+http://mycart-empmngmntsystm.rhcloud.com/cart/add
+(name, product_id, qty)
+
+PATCH
+http://mycart-empmngmntsystm.rhcloud.com/cart/update/([0-9-/]+?)/
+(name, product_id, qty)
+
+PATCH
+http://mycart-empmngmntsystm.rhcloud.com/cart/update/([0-9-/]+?)/lineitem/([0-9-/]+?)/qty/([0-9-/]+?)/
+http://mycart-empmngmntsystm.rhcloud.com/cart/update/10/lineitem/4/qty/1
+
+
+DELETE CART
+http://mycart-empmngmntsystm.rhcloud.com/cart/7/
+
+DELETE CART LINE ITEM
+http://mycart-empmngmntsystm.rhcloud.com/cart/delete/4/lineitem/7
+
+GET (GET BY ID)
+http://mycart-empmngmntsystm.rhcloud.com/cart/8
+
+GET (GET ALL)
+http://mycart-empmngmntsystm.rhcloud.com/cart/
+
+
+-------------------------------------------------------------------------
+Api List for local machine
 -------------------------------------------------------------------------
 Add Category
 POST http://mycart.com/category/add

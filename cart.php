@@ -1,15 +1,59 @@
 <?php
-include_once('./category.php');
-include_once('./product.php');
-include_once('./http_response_message.php');
+include_once('category.php');
+include_once('product.php');
+include_once('cart_validation.php');
+include_once('http_response_message.php');
+
 class cart {
 	
 	public $cartid = 0;
 	public $c = null;
+	private $v;
 
 	function __construct($obj = null){
 		if($obj instanceof Cart_Model){
 			$this->c = $obj;
+			$this->v = new cart_validation();
+		}
+	}
+
+	function validateAdd(){
+		if(($this->c->getAction() == 'add') || (($this->c->getAction() == 'update') && ($this->c->getName() != ''))){
+			if(!$this->v->isValidName($this->c->getName())){
+				throw new Exception(http_response_message::$response_message[1201]);
+			}	
+		}
+
+		if($this->c->getQty() >= 0) {
+			if(!$this->v->isValidQty($this->c->getQty())){
+				throw new Exception(http_response_message::$response_message[1205]);
+			}
+		}
+
+		if((int)$this->c->getProductId() >= 0 || (int)$this->c->getProductId() < 1) {
+			if(!product::validProductId((int)$this->c->getProductId())){
+				throw new Exception(http_response_message::$response_message[1005]);
+			}
+		}
+	}
+
+	function validate($case){
+		switch($case){
+			case 'category_id':
+				if(true){
+					throw new Exception(http_response_message::$response_message[1005]);
+				}
+			break;
+			case 'product_id':
+				if(!product::validProductId((int)$this->c->getProductId())){
+					throw new Exception(http_response_message::$response_message[1005]);
+				}
+			break;
+			case 'cart_id':
+				if(!$this->isCart($this->c->getCartId())){
+					throw new Exception(http_response_message::$response_message[1010]);
+				}
+			break;
 		}
 	}
 
@@ -213,12 +257,7 @@ class cart {
 		$db = connection::connect();
 		try{
 
-			if((int)$this->c->getProductId() < 1){
-				throw new Exception(http_response_message::$response_message[1005]);
-			}
-			if(!product::validProductId((int)$this->c->getProductId())){
-				throw new Exception(http_response_message::$response_message[1005]);
-			}
+			$this->validateAdd();
 			
 			if($this->c instanceof Cart_Model){
 				if((int)$this->c->getCartId() < 1){
@@ -255,9 +294,7 @@ class cart {
 		$db = connection::connect();
 		try{
 			
-			if((int)$this->c->getCartId() < 1){
-				throw new Exception(http_response_message::$response_message[1010]);
-			}
+			$this->validate('cart_id');
 			
 			if((int)$this->c->getProductId() > 0){
 				$sql_delete_cart_details = 'delete from cart_details where product_id=:pid';

@@ -1,27 +1,91 @@
 <?php
-include_once('./category.php');
-include_once('./http_response_message.php');
+include_once('category.php');
+include_once('http_response_message.php');
+include_once('product_validation.php');
 class product {
 	
 	public $p = null;
+	private $v;
 
 	function __construct($obj = null){
 		if($obj instanceof Product_Model){
 			$this->p = $obj;
+			$this->v = new product_validation();
 		}
 	}
 
+	function validateProduct(){
+		if($this->p->getAction() != 'add'){
+			if(!product::validProductId($this->p->getId())){
+				throw new Exception(http_response_message::$response_message[1005]);
+			}
+		}
+		
+		if($this->p->getAction() == 'add'){
+			if(!$this->v->isValidName($this->p->getName())){
+				throw new Exception(http_response_message::$response_message[1201]);
+			}
+			if(!$this->v->isValidDescription($this->p->getDescription())){
+				throw new Exception(http_response_message::$response_message[1202]);
+			}
+			if(!$this->v->isValidPrice($this->p->getPrice())){
+				throw new Exception(http_response_message::$response_message[1203]);
+			}
+			if(!$this->v->isValidDiscount($this->p->getDiscount())){
+				throw new Exception(http_response_message::$response_message[1204]);
+			}
+			if(!category::validCategoryId($this->p->getCategoryId())){
+				throw new Exception(http_response_message::$response_message[1001]);
+			}
+		} else {
+
+			if($this->p->getAction() == 'update'){
+
+				if($this->p->getName() || $this->p->getDescription() || $this->p->getPrice() || $this->p->getDiscount()) {
+				
+					if($this->p->getName() != ''){
+						if(!$this->v->isValidName($this->p->getName())){
+							throw new Exception(http_response_message::$response_message[1201]);
+						}
+					}
+
+					if($this->p->getDescription() != ''){				
+						if(!$this->v->isValidDescription($this->p->getDescription())){
+							throw new Exception(http_response_message::$response_message[1202]);
+						}
+					}
+
+					if($this->p->getPrice() != '' || $this->p->getPrice() > 0 || $this->p->getPrice() < 0){
+						if(!$this->v->isValidPrice($this->p->getPrice())){
+							throw new Exception(http_response_message::$response_message[1203]);
+						}
+					}
+
+					if($this->p->getDiscount() != '' || $this->p->getDiscount() > 0 || $this->p->getDiscount() < 0){
+						if(!$this->v->isValidDiscount($this->p->getDiscount())){
+							throw new Exception(http_response_message::$response_message[1204]);
+						}
+					}
+
+					if($this->p->getCategoryId() > 0) {
+						if(!category::validCategoryId($this->p->getCategoryId())){
+							throw new Exception(http_response_message::$response_message[1001]);
+						}
+					}
+				} else {
+					throw new Exception(http_response_message::$response_message[1206]);
+				}
+			}
+		}
+	}
 
 	function add(){
 		$db = connection::connect();
 
 		try{
 			
-			if((int)$this->p->getCategoryId() > 0){
-				if(!category::validCategoryId($this->p->getCategoryId())){
-					throw new Exception(http_response_message::$response_message[1001]);
-				}
-			}
+			$this->validateProduct();
+
 			if($this->p instanceof Product_Model){
 				$statement = $db->prepare("INSERT INTO product(name, description, price, discount, category_id) VALUES (:name, :description, :price, :discount, :category_id)");
 				$statement->execute(array(
@@ -45,20 +109,8 @@ class product {
 	function update(){
 		$db = connection::connect();
 		try{
-			
-			if((int)$this->p->getId() < 1){
-				throw new Exception(http_response_message::$response_message[1005]);
-			} else {
-				if(!$this->validProductId($this->p->getId())){
-					throw new Exception(http_response_message::$response_message[1005]);
-				}
-			}
+			$this->validateProduct();
 
-			if((int)$this->p->getCategoryId() > 0){
-				if(!category::validCategoryId($this->p->getCategoryId())){
-					throw new Exception(http_response_message::$response_message[1001]);
-				}
-			}
 			if($this->p instanceof Product_Model){
 				
 				$sql = "";
@@ -72,14 +124,15 @@ class product {
 					$sql .= $deli."description = :description ";
 					$deli = ',';
 				}
-				if(strlen($this->p->getPrice()) > 0){
+				if($this->p->getPrice() > 0){
 					$sql .= $deli."price = :price  ";
 					$deli = ',';
 				}
-				if(strlen($this->p->getDiscount()) > 0){
+
+				if($this->p->getDiscount() > 0){
 					$sql .= $deli."discount = :discount  ";
 				}
-				if(strlen($this->p->getCategoryId()) > 0){
+				if($this->p->getCategoryId() > 0){
 					$sql .= $deli."category_id = :category_id  ";
 				}
 				$sql .= "WHERE id = :id";
@@ -92,17 +145,17 @@ class product {
 					$stmt->bindParam(':description', $this->p->getDescription(), PDO::PARAM_STR);    
 				}
 				
-				if(strlen($this->p->getPrice()) > 0){
+				if((int)$this->p->getPrice() > 0){
 					$stmt->bindParam(':price', $this->p->getPrice(), PDO::PARAM_STR);
 				}
 				
-				if(strlen($this->p->getDiscount()) > 0){
+				if((int)$this->p->getDiscount() > 0){
 					$stmt->bindParam(':discount', $this->p->getDiscount(), PDO::PARAM_STR);   
 				}
-				if(strlen($this->p->getCategoryId()) > 0){
+				if((int)$this->p->getCategoryId() > 0){
 					$stmt->bindParam(':category_id', $this->p->getCategoryId(), PDO::PARAM_INT);   
 				}
-				if(strlen($this->p->getId()) > 0){
+				if((int)$this->p->getId() > 0){
 					$stmt->bindParam(':id', $this->p->getId(), PDO::PARAM_INT);   
 				}
 				$stmt->execute(); 
@@ -120,10 +173,7 @@ class product {
 	function delete(){
 		$db = connection::connect();
 		try{
-			
-			if(!$this->validProductId($this->p->getId())){
-				throw new Exception(http_response_message::$response_message[1005]);
-			}
+			$this->validateProduct();
 			if($this->p instanceof Product_Model){
 				$sql = 'delete from product where id=:id';
 				$stmt = $db->prepare($sql);
@@ -161,9 +211,7 @@ class product {
 	function getById(){
 		$db = connection::connect();
 		try{
-			if(!$this->validProductId($this->p->getId())){
-				throw new Exception(http_response_message::$response_message[1005]);
-			}
+			$this->validateProduct();
 			$sql = 'select * from product where id=:id';
 			$stmt = $db->prepare($sql);
 			$stmt->bindValue(':id', $this->p->getId());

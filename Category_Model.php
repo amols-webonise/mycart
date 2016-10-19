@@ -5,6 +5,7 @@ class Category_Model
 	protected $_name;
 	protected $_description;
 	protected $_tax;
+    protected $_action;
 	
     public function __construct(array $options = null)
     {
@@ -90,5 +91,16 @@ class Category_Model
     public function getTax()
     {
         return $this->_tax;
+    }
+
+    public function setAction($action)
+    {
+        $this->_action = (string) $action;
+        return $this;
+    }
+
+    public function getAction()
+    {
+        return $this->_action;
     }
 }

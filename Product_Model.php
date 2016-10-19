@@ -7,6 +7,7 @@ class Product_Model
 	protected $_price;
     protected $_discount;
     protected $_category_id;
+    protected $_action;
     
     public function __construct(array $options = null)
     {
@@ -114,5 +115,16 @@ class Product_Model
     public function getCategoryId()
     {
         return $this->_category_id;
+    }
+
+    public function setAction($action)
+    {
+        $this->_action = (string) $action;
+        return $this;
+    }
+
+    public function getAction()
+    {
+        return $this->_action;
     }
 }

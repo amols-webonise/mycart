@@ -5,6 +5,7 @@ class Cart_Model
 	protected $_name;
 	protected $_product_id;
 	protected $_qty;
+    protected $_action;
 
     public function __construct(array $options = null)
     {
@@ -89,5 +90,16 @@ class Cart_Model
     public function getQty()
     {
         return $this->_qty;
+    }
+
+    public function setAction($action)
+    {
+        $this->_action = (string) $action;
+        return $this;
+    }
+
+    public function getAction()
+    {
+        return $this->_action;
     }
 }

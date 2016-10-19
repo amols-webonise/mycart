@@ -1,22 +1,71 @@
 <?php
-include_once('./statuscode.php');
-include_once('./http_response_message.php');
+include_once('statuscode.php');
+include_once('http_response_message.php');
+include_once('category_validation.php');
 class category { 
 
 	public $c = NULL;
+	private $v;
 
 	function __construct($obj = null){
 		if($obj instanceof Category_Model){
 			$this->c = $obj;
+			$this->v = new category_validation();
 		}
+	}
+
+	function validateCategory(){
+		if($this->c->getAction() != 'add'){
+			if(!category::validCategoryId($this->c->getId())){
+				throw new Exception(http_response_message::$response_message[1001]);
+			}
+		}
+		
+		if($this->c->getAction() == 'add'){
+			if(!$this->v->isValidName($this->c->getName())){
+				throw new Exception(http_response_message::$response_message[1101]);
+			}
+			if(!$this->v->isValidDescription($this->c->getDescription())){
+				throw new Exception(http_response_message::$response_message[1102]);
+			}
+			if(!$this->v->isValidTax($this->c->getTax())){
+				throw new Exception(http_response_message::$response_message[1103]);
+			}
+		} else {
+
+			if($this->c->getAction() == 'update'){
+				if($this->c->getName() != '' || $this->c->getDescription() != '' || $this->c->getTax() != '') {
+					if($this->c->getName() != ''){
+						if(!$this->v->isValidName($this->c->getName())){
+							throw new Exception(http_response_message::$response_message[1101]);
+						}
+					}
+					
+					if($this->c->getDescription() != '') {
+						if(!$this->v->isValidDescription($this->c->getDescription())){
+							throw new Exception(http_response_message::$response_message[1102]);
+						}
+					}
+					
+					if($this->c->getTax() != '' || $this->c->getTax() > 0 || $this->c->getTax() < 0){
+						if(!$this->v->isValidTax($this->c->getTax())){
+							throw new Exception(http_response_message::$response_message[1103]);
+						}
+					}
+				} else {
+					throw new Exception(http_response_message::$response_message[1104]);
+				}
+			}
+		}
+
 	}
 
 	function add(){
 		$db = connection::connect();
 		try{
-			if((int)$this->c->id > 0){
-				throw new Exception(http_response_message::$response_message[1004]);
-			}
+			
+			$this->validateCategory();
+
 			if($this->c  instanceof Category_Model){
 				$statement = $db->prepare("INSERT INTO category(name, description, tax) VALUES (:name, :description, :tax)");
 				$statement->execute(array(
@@ -37,14 +86,7 @@ class category {
 	function update(){
 		$db = connection::connect();
 		try{
-			
-			if((int)$this->c->id < 1){
-				throw new Exception(http_response_message::$response_message[1001]);
-			}else{
-				if(!category::validCategoryId($this->c->id)){
-					throw new Exception(http_response_message::$response_message[1001]);
-				}
-			}
+			$this->validateCategory();
 			
 			if($this->c  instanceof Category_Model){
 				
@@ -59,7 +101,7 @@ class category {
 					$sql .= $deli."description = :description ";
 					$deli = ',';
 				}
-				if(strlen($this->c->tax) > 0){
+				if($this->c->tax > 0){
 					$sql .= $deli."tax = :tax  ";
 				}
 				$sql .= "WHERE id = :id";
@@ -72,11 +114,11 @@ class category {
 					$stmt->bindParam(':description', $this->c->description, PDO::PARAM_STR);    
 				}
 				
-				if(strlen($this->c->tax) > 0){
+				if($this->c->tax > 0){
 					$stmt->bindParam(':tax', $this->c->tax, PDO::PARAM_STR);
 				}
 				
-				if(strlen($this->c->id) > 0){
+				if($this->c->id > 0){
 					$stmt->bindParam(':id', $this->c->id, PDO::PARAM_INT);   
 				}
 				$stmt->execute(); 
@@ -93,7 +135,7 @@ class category {
 	function delete(){
 		$db = connection::connect();
 		try{
-			
+			$this->validateCategory();
 			if((int)$this->c->id < 1){
 				throw new Exception(http_response_message::$response_message[1001]);
 			}else{

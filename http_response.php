@@ -1,8 +1,29 @@
 <?php
-include_once('./statuscode.php');
-include_once('./http_response_message.php');
+include_once('statuscode.php');
+include_once('http_response_message.php');
 class http_response
 {
+	
+	private static $response_text;
+	private static $response_status;
+	public static $print_response = true;
+
+	public function getResponseText(){
+		return self::$response_text;
+	}
+
+	public function setResponseText($text){
+		self::$response_text = $text;
+	}
+
+	public function getResponseStatus(){
+		return self::$response_status;
+	}
+
+	public function setResponseStatus($response_status){
+		self::$response_status = $response_status;
+	}
+
 	/*
 	$response - SUCCESS / ERROR / WARNING
 	$response_code - the code is available in parent class http_response_code
@@ -17,10 +38,17 @@ class http_response
 		if(is_array($data) && sizeof($data) > 0){
 			$response_array['data'] = $data;
 		}
-		echo json_encode($response_array);
+		
+		self::setResponseStatus($response);
+		self::setResponseText(json_encode($response_array));
+
 		if($msg != NULL){
 			errorlog::save('Caught exception: '.  $msg);
 		}
-		exit;
+		
+		if(self::$print_response) {
+			echo self::getResponseText();
+			exit;
+		}
 	}
 }
